@@ -1,0 +1,5 @@
+pydantic
+textual[dev]
+python-dotenv
+mlflow
+azureml-mlflow
