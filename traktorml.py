@@ -47,14 +47,14 @@ class ExperimentRunsView(BaseModel):
         arbitrary_types_allowed = True
 
     @property
-    def selected_columns(self):
+    def selected_columns(self) -> List[str]
         return [
             c for c in self.experiment_runs_df.columns
             if c not in self.deselected_columns
         ]
 
     @property
-    def selected_runs_df(self):
+    def selected_runs_df(self) -> DataFrame:
         runs_df = self.experiment_runs_df[self.selected_columns]
         if self.deselected_run_ids:
             runs_df = runs_df[
@@ -67,10 +67,10 @@ class ExperimentRunsView(BaseModel):
         return runs_df
 
     @property
-    def selected_data(self):
+    def selected_data(self) -> List[Tuple]:
         return [tuple(row) for row in self.selected_runs_df.values]
 
-    def reset_view(self):
+    def reset_view(self) -> None:
         self.deselected_columns = []
         self.deselected_run_ids = []
         self.current_sort = None
@@ -78,7 +78,7 @@ class ExperimentRunsView(BaseModel):
         self.filter_deselected_values = defaultdict(list)
 
 
-def set_data_table_to_experiment_view(experiment_view: ExperimentRunsView, data_table: DataTable):
+def set_data_table_to_experiment_view(experiment_view: ExperimentRunsView, data_table: DataTable) -> None:
     """Helper function to set the values of a Textual data table to an experiment view."""
     data_table.clear(columns=True)
     for col in experiment_view.selected_columns:
@@ -106,7 +106,7 @@ class TraktorML(App):
     experiment_views: Dict[str, ExperimentRunsView] = {}
 
     @property
-    def experiment_view(self):
+    def experiment_view(self) -> ExperimentRunsView:
         if self.selected_experiment.name not in self.experiment_views:
             self.experiment_views[self.selected_experiment.name] = ExperimentRunsView(
                 experiment_runs_df=get_experiment_runs_df(self.selected_experiment)
