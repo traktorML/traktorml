@@ -186,7 +186,7 @@ class TraktorML(App):
             run_table.cursor_coordinate = cursor_coordinate
 
         if event.key == "q":
-            self.quit()
+            self.app.exit()
 
     @on(Select.Changed)
     def select_changed(self, event: Select.Changed) -> None:
