@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Dict, List, Tuple, Union
 
 import mlflow
 from dotenv import load_dotenv
@@ -38,17 +37,17 @@ class ExperimentRunsView(BaseModel):
     """A view of the runs of an MLFlow experiment."""
 
     experiment_runs_df: DataFrame
-    deselected_columns: List[str] = []
-    deselected_run_ids: List[str] = []
-    current_sort: Union[Tuple[str, bool], None] = None
+    deselected_columns: list[str] = []
+    deselected_run_ids: list[str] = []
+    current_sort: tuple[str, bool] | None = None
     filter_selected_values: dict = {}
-    filter_deselected_values: Dict[str, list] = defaultdict(list)
+    filter_deselected_values: dict[str, list] = defaultdict(list)
 
     class Config:
         arbitrary_types_allowed = True
 
     @property
-    def selected_columns(self) -> List[str]:
+    def selected_columns(self) -> list[str]:
         return [c for c in self.experiment_runs_df.columns if c not in self.deselected_columns]
 
     @property
@@ -63,7 +62,7 @@ class ExperimentRunsView(BaseModel):
         return runs_df
 
     @property
-    def selected_data(self) -> List[Tuple]:
+    def selected_data(self) -> list[tuple]:
         return [tuple(row) for row in self.selected_runs_df.to_numpy()]
 
     def reset_view(self) -> None:
@@ -99,8 +98,8 @@ class TraktorML(App):
     ]
 
     experiments = get_experiments()
-    selected_experiment: Union[Experiment, None] = None
-    experiment_views: Dict[str, ExperimentRunsView] = {}
+    selected_experiment: Experiment
+    experiment_views: dict[str, ExperimentRunsView] = {}
 
     @property
     def experiment_view(self) -> ExperimentRunsView:
