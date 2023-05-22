@@ -1,12 +1,12 @@
-import random
 import argparse
+import random
 
 import mlflow
 
 FAKE_EXPERIMENTS = ["Hyperparameter tuning never works", "Big Pickle"]
 
 
-def generate_run(experiment_name: str):
+def generate_run(experiment_name: str) -> None:
     """Generate a fake run for the given experiment.
 
     Should be expanded to include more stuff.
