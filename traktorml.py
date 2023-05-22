@@ -10,9 +10,9 @@ from textual.widgets import DataTable, Footer
 from textual import on
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Select
-from dotenv import load_dotenv, find_dotenv
+from dotenv import load_dotenv
 
-load_dotenv(find_dotenv())
+load_dotenv()
 
 MISSING_VALUE = "N/A"
 
