@@ -1,16 +1,15 @@
 from collections import defaultdict
-from typing import List, Tuple, Union, Dict
+from typing import Dict, List, Tuple, Union
 
 import mlflow
+from dotenv import load_dotenv
 from pandas import DataFrame
 from pydantic import BaseModel
-from textual.containers import ScrollableContainer
-from textual.events import Key
-from textual.widgets import DataTable, Footer
 from textual import on
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Select
-from dotenv import load_dotenv
+from textual.containers import ScrollableContainer
+from textual.events import Key
+from textual.widgets import DataTable, Footer, Header, Select
 
 load_dotenv()
 
@@ -19,6 +18,7 @@ MISSING_VALUE = "N/A"
 
 class Experiment(BaseModel):
     """An MLFlow experiment."""
+
     name: str
     id: str
 
@@ -31,11 +31,12 @@ def get_experiments() -> list[Experiment]:
 
 
 def get_experiment_runs_df(experiment: Experiment) -> DataFrame:
-    return  mlflow.search_runs(experiment_names=[experiment.name]).fillna(MISSING_VALUE)
+    return mlflow.search_runs(experiment_names=[experiment.name]).fillna(MISSING_VALUE)
 
 
 class ExperimentRunsView(BaseModel):
     """A view of the runs of an MLFlow experiment."""
+
     experiment_runs_df: DataFrame
     deselected_columns: List[str] = []
     deselected_run_ids: List[str] = []
@@ -47,19 +48,14 @@ class ExperimentRunsView(BaseModel):
         arbitrary_types_allowed = True
 
     @property
-    def selected_columns(self) -> List[str]
-        return [
-            c for c in self.experiment_runs_df.columns
-            if c not in self.deselected_columns
-        ]
+    def selected_columns(self) -> List[str]:
+        return [c for c in self.experiment_runs_df.columns if c not in self.deselected_columns]
 
     @property
     def selected_runs_df(self) -> DataFrame:
         runs_df = self.experiment_runs_df[self.selected_columns]
         if self.deselected_run_ids:
-            runs_df = runs_df[
-                ~self.experiment_runs_df["run_id"].isin(self.deselected_run_ids)
-            ]
+            runs_df = runs_df[~self.experiment_runs_df["run_id"].isin(self.deselected_run_ids)]
         for col, val in self.filter_selected_values.items():
             runs_df = runs_df[runs_df[col] == val]
         for col, vals in self.filter_deselected_values.items():
@@ -68,7 +64,7 @@ class ExperimentRunsView(BaseModel):
 
     @property
     def selected_data(self) -> List[Tuple]:
-        return [tuple(row) for row in self.selected_runs_df.values]
+        return [tuple(row) for row in self.selected_runs_df.to_numpy()]
 
     def reset_view(self) -> None:
         self.deselected_columns = []
@@ -78,17 +74,18 @@ class ExperimentRunsView(BaseModel):
         self.filter_deselected_values = defaultdict(list)
 
 
-def set_data_table_to_experiment_view(experiment_view: ExperimentRunsView, data_table: DataTable) -> None:
+def set_data_table_to_experiment_view(
+    experiment_view: ExperimentRunsView, data_table: DataTable
+) -> None:
     """Helper function to set the values of a Textual data table to an experiment view."""
     data_table.clear(columns=True)
     for col in experiment_view.selected_columns:
         data_table.add_column(label=col, key=col)
-    for i, row in enumerate(experiment_view.selected_data):
+    for _i, row in enumerate(experiment_view.selected_data):
         data_table.add_row(*row, key=row[0])
 
 
 class TraktorML(App):
-
     TITLE = "Traktor ML"
     CSS = "DataTable {height: 1fr}"
     BINDINGS = [
@@ -118,7 +115,7 @@ class TraktorML(App):
         yield Footer()
         yield Select(
             options=[(experiment.name, experiment.id) for experiment in self.experiments],
-            prompt="Select experiment"
+            prompt="Select experiment",
         )
         yield ScrollableContainer(DataTable(), id="run_table")
 
@@ -132,7 +129,10 @@ class TraktorML(App):
             self.experiment_view.filter_deselected_values[col_key.value].append(MISSING_VALUE)
             set_data_table_to_experiment_view(self.experiment_view, run_table)
 
-            if self.experiment_view.current_sort is None or self.experiment_view.current_sort[0] != col_key:
+            if (
+                self.experiment_view.current_sort is None
+                or self.experiment_view.current_sort[0] != col_key
+            ):
                 is_reverse = False
                 run_table.sort(col_key, reverse=is_reverse)
             else:
@@ -162,7 +162,9 @@ class TraktorML(App):
             run_table = self.query_one(DataTable)
             cursor_coordinate = run_table.cursor_coordinate
             row_key, col_key = run_table.coordinate_to_cell_key(cursor_coordinate)
-            self.experiment_view.filter_selected_values[col_key.value] = run_table.get_cell(row_key, col_key)
+            self.experiment_view.filter_selected_values[col_key.value] = run_table.get_cell(
+                row_key, col_key
+            )
             set_data_table_to_experiment_view(self.experiment_view, run_table)
             run_table.cursor_coordinate = cursor_coordinate
 
@@ -170,7 +172,9 @@ class TraktorML(App):
             run_table = self.query_one(DataTable)
             cursor_coordinate = run_table.cursor_coordinate
             row_key, col_key = run_table.coordinate_to_cell_key(cursor_coordinate)
-            self.experiment_view.filter_deselected_values[col_key.value].append(run_table.get_cell(row_key, col_key))
+            self.experiment_view.filter_deselected_values[col_key.value].append(
+                run_table.get_cell(row_key, col_key)
+            )
             set_data_table_to_experiment_view(self.experiment_view, run_table)
             run_table.cursor_coordinate = cursor_coordinate
 
