@@ -23,6 +23,12 @@ class Experiment(BaseModel):
     id: str
 
 
+class RunInfo(BaseModel):
+    """An MLFlow run."""
+    metrics: dict
+    params: dict
+    tags: dict
+
 def get_experiments() -> list[Experiment]:
     return [
         Experiment(name=experiment.name, id=experiment.experiment_id)
