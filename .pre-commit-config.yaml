@@ -1,3 +1,8 @@
+# Run ALL pre-commit checks without committing:
+#   pre-commit run --all-files --hook-stage manual
+# Update this file:
+#   pre-commit autoupdate
+
 default_language_version:
   python: python3.11
 repos:
@@ -13,3 +18,58 @@ repos:
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
+
+
+  # RUNNING ONLY IN MANUAL MODE
+  # format markdown files
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: "v2.7.1"
+    hooks:
+      - id: prettier
+        types: [markdown]
+        args: ["--prose-wrap", "always", "--print-width", "100"]
+        stages:
+          - "manual"
+
+  # Check typehints
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.2.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-requests
+          - types-PyYAML
+          - pydantic
+          - types-redis
+        stages:
+          - "manual"
+        exclude: "conftest.py"
+
+    # Fix coding patterns from old Python versions
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.3.2
+    hooks:
+      - id: pyupgrade
+        args: [--py310-plus]
+        stages:
+          - "manual"
+
+  # Misc checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-json
+        stages:
+          - "manual"
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+        stages:
+          - "manual"
+      - id: debug-statements
+        stages:
+          - "manual"
+      - id: check-merge-conflict
+        stages:
+          - "manual"
+      - id: check-added-large-files
+        args: ["--maxkb=2000"]
